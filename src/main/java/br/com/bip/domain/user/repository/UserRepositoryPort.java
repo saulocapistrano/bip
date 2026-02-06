@@ -14,6 +14,6 @@ public interface UserRepositoryPort {
     Optional<User> findById(UUID id);
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
-    List<User> findByRoleStatus(UserRole role, UserStatus status);
+    List<User> findByRoleAndStatus(UserRole role, UserStatus status);
 
 }
