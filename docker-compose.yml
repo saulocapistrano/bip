@@ -52,12 +52,13 @@ services:
     depends_on:
       - postgres
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@bip.local
+      PGADMIN_DEFAULT_EMAIL: admin@bip.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
     networks:
       - bip-network
+
 
   redis:
     container_name: bip-redis
