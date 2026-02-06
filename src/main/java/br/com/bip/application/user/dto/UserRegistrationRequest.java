@@ -1,6 +1,7 @@
 package br.com.bip.application.user.dto;
 
 import br.com.bip.domain.user.model.UserRole;
+import br.com.bip.domain.user.model.UserStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +21,8 @@ public record UserRegistrationRequest(
         String phone,
 
         @NotNull
-        UserRole role
+        UserRole role,
+
+        UserStatus status
 ) {
 }
