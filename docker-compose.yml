@@ -1,0 +1,134 @@
+version: '3.9'
+
+services:
+  bip-api:
+    container_name: bip-api
+    build: .
+    image: bip-api:latest
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+      - keycloak
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bip_db
+      SPRING_DATASOURCE_USERNAME: bip-user
+      SPRING_DATASOURCE_PASSWORD: strong_bip_pass1524
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+      KEYCLOAK_AUTH_SERVER_URL: http://keycloak:8080
+      KEYCLOAK_REALM: bip-realm
+      KEYCLOAK_CLIENT_ID: bip-api
+
+    networks:
+      - bip-network
+
+  postgres:
+    container_name: bip-postgres
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: bip_db
+      POSTGRES_USER: bip-user
+      POSTGRES_PASSWORD: strong_bip_pass1524
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/postgres/data:/var/lib/postgresql/data
+    networks:
+      - bip-network
+
+  pgadmin:
+    container_name: bip-pgadmin
+    image: dpage/pgadmin4:8.14
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@bip.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - bip-network
+
+  redis:
+    container_name: bip-redis
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ./docker/redis/data:/data
+    networks:
+      - bip-network
+
+  zookeeper:
+    container_name: bip-zookeeper
+    image: confluentinc/cp-zookeeper:7.6.1
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - bip-network
+
+  kafka:
+    container_name: bip-kafka
+    image: confluentinc/cp-kafka:7.6.1
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - bip-network
+
+  kafka-ui:
+    container_name: bip-kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    restart: always
+    depends_on:
+      - kafka
+      - zookeeper
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - bip-network
+
+  keycloak:
+    container_name: bip-keycloak
+    image: quay.io/keycloak/keycloak:24.0.0
+    command: ["start-dev"]
+    restart: always
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    networks:
+      - bip-network
+
+networks:
+  bip-network:
+    name: bip-network
