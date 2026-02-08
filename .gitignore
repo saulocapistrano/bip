@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Dados de containers (não versionar)
+docker/postgres/data/
+docker/redis/data/
