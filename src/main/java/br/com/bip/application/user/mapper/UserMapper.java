@@ -17,7 +17,7 @@ public class UserMapper {
                 .email(request.email())
                 .phone(request.email())
                 .role(request.role())
-                .status(UserStatus.PENDING_APROVAL)
+                .status(UserStatus.PENDING_APPROVAL)
                 .build();
     }
 
