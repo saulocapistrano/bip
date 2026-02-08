@@ -2,7 +2,7 @@ package br.com.bip.domain.user.model;
 
 public enum UserStatus {
 
-    APROVED,
+    APPROVED,
     REJECTED,
-    PENDING_APROVAL
+    PENDING_APPROVAL
 }
