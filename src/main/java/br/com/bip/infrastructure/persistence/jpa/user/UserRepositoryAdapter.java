@@ -25,6 +25,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public List<User> findAll() {
+        return userJpaRepository.findAll();
+    }
+
+    @Override
     public Optional<User> findById(UUID id) {
         return userJpaRepository.findById(id);
     }
@@ -44,4 +49,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return userJpaRepository.findByRoleAndStatus(role, status);
     }
 
+    @Override
+    public void deleteById(UUID id) {
+        userJpaRepository.deleteById(id);
+    }
 }
