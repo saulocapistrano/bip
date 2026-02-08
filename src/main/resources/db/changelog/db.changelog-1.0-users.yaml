@@ -1,10 +1,10 @@
 databaseChangeLog:
   - changeSet:
-      id: 1.0-create-users
+      id: 1.1-create-delivery-requests
       author: bip
       changes:
         - createTable:
-            tableName: users
+            tableName: delivery_requests
             columns:
               - column:
                   name: id
@@ -14,32 +14,44 @@ databaseChangeLog:
                     nullable: false
 
               - column:
-                  name: keycloak_id
+                  name: client_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: driver_id
+                  type: UUID
+                  constraints:
+                    nullable: true
+
+              - column:
+                  name: pickup_address
                   type: VARCHAR(255)
                   constraints:
-                    nullable: true
+                    nullable: false
 
               - column:
-                  name: name
-                  type: VARCHAR(150)
+                  name: delivery_address
+                  type: VARCHAR(255)
                   constraints:
                     nullable: false
 
               - column:
-                  name: email
-                  type: VARCHAR(150)
+                  name: description
+                  type: VARCHAR(500)
                   constraints:
                     nullable: false
 
               - column:
-                  name: phone
-                  type: VARCHAR(20)
+                  name: weight_kg
+                  type: NUMERIC(10,2)
                   constraints:
-                    nullable: true
+                    nullable: false
 
               - column:
-                  name: role
-                  type: VARCHAR(30)
+                  name: offered_price
+                  type: NUMERIC(10,2)
                   constraints:
                     nullable: false
 
@@ -48,6 +60,18 @@ databaseChangeLog:
                   type: VARCHAR(30)
                   constraints:
                     nullable: false
+
+              - column:
+                  name: cancellation_reason
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: true
+
+              - column:
+                  name: return_reason
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: true
 
               - column:
                   name: created_at
@@ -60,8 +84,3 @@ databaseChangeLog:
                   type: TIMESTAMP WITH TIME ZONE
                   constraints:
                     nullable: false
-
-              - addUniqueConstraint:
-                  tableName: users
-                  columnNames: email
-                  constraintName: uk_users_email
