@@ -7,8 +7,8 @@ import br.com.bip.domain.user.model.User;
 import br.com.bip.domain.user.model.UserRole;
 import br.com.bip.domain.user.repository.UserRepositoryPort;
 import br.com.bip.shared.exception.BusinessException;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserRegistrationService {
@@ -20,13 +20,13 @@ public class UserRegistrationService {
 
     @Transactional
     public UserResponse registerClient(UserRegistrationRequest request){
-        return registerUserWithRole(request, UserRole.BIP_ENTREGADOR);
+        return registerUserWithRole(request, UserRole.BIP_CLIENTE);
     }
 
     private UserResponse registerUserWithRole(UserRegistrationRequest request, UserRole userRole) {
 
         if (!userRole.equals(request.role())) {
-            throw new BusinessException("Role inválido para este endpoint");
+            throw new BusinessException("Tipo de usuário não permitido para esta operação. Em caso de dúvida, entre em contato pelo SAC.");
         }
 
         if (userRepositoryPort.existsByEmail(request.email())) {
@@ -41,4 +41,7 @@ public class UserRegistrationService {
 
     }
 
+    public UserResponse registerDriver(UserRegistrationRequest request) {
+        return registerUserWithRole(request, UserRole.BIP_ENTREGADOR);
+    }
 }
