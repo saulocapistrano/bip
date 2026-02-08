@@ -1,6 +1,7 @@
 package br.com.bip.domain.user.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,7 +19,8 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", columnDefinition = "UUID")
     private UUID id;
 
     @Column(name = "keycloak_id", length = 255)
@@ -28,6 +30,7 @@ public class User {
     private String name;
 
     @Column(nullable = false, unique = true, length = 150)
+    @Email
     private String email;
 
     @Column(length = 20)

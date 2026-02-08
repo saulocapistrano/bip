@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/users/resistration")
+@RequestMapping("/users/registration")
 public class UserRegistrationController {
 
     private final UserRegistrationService userRegistrationService;

@@ -15,7 +15,7 @@ public class UserMapper {
         return User.builder()
                 .name(request.name())
                 .email(request.email())
-                .phone(request.email())
+                .phone(request.phone())
                 .role(request.role())
                 .status(UserStatus.PENDING_APPROVAL)
                 .build();
