@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -51,5 +52,15 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    @Column(name = "client_balance", nullable = false, precision = 10, scale = 2)
+    private BigDecimal clientBalance = BigDecimal.ZERO;
+
+    @Column(name = "driver_balance", nullable = false, precision = 10, scale = 2)
+    private BigDecimal driverBalance = BigDecimal.ZERO;
+
+    @Column(name = "driver_score", nullable = false, precision = 10, scale = 2)
+    private BigDecimal driverScore = BigDecimal.ZERO;
+
 
 }
