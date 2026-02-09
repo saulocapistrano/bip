@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.2-add-users-financial-columns
+      author: bip
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: client_balance
+                  type: NUMERIC(10,2)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: driver_balance
+                  type: NUMERIC(10,2)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: driver_score
+                  type: NUMERIC(10,2)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
