@@ -42,12 +42,15 @@ public class DeliveryAssignmentService {
             throw new BusinessException("Entregador precisa ter cadastro aprovado para aceitar entregas.");
         }
 
-
         DeliveryRequest delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new NotFoundException("Entrega não encontrada: " + deliveryId));
 
         if (delivery.getStatus() != DeliveryStatus.AVAILABLE) {
-            throw new BusinessException("Entrega não está disponível para aceitação.");
+            throw new BusinessException("Somente entregas disponíveis podem ser aceitas.");
+        }
+
+        if (delivery.getDriverId() != null) {
+            throw new BusinessException("Entrega já atribuída a um entregador.");
         }
 
         delivery.setDriverId(driver.getId());
@@ -55,8 +58,7 @@ public class DeliveryAssignmentService {
 
         DeliveryRequest saved = deliveryRepository.save(delivery);
 
-        // voltar aqui e disparar evento Kafka / WebSocket notificando o cliente
-
+        //  disparar evento Kafka / WebSocket notificando o cliente
         return DeliveryMapper.toResponse(saved);
     }
 }
