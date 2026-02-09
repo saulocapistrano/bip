@@ -1,18 +1,14 @@
 package br.com.bip.domain.delivery.service;
 
 import br.com.bip.application.delivery.dto.DeliveryResponse;
-import br.com.bip.application.delivery.event.messaging.DeliveryCanceledEvent;
-import br.com.bip.application.financial.messaging.FinancialTransactionEvent;
-import br.com.bip.application.financial.messaging.FinancialTransactionType;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
 import br.com.bip.domain.user.model.UserRole;
 import br.com.bip.domain.user.model.UserStatus;
 import br.com.bip.domain.user.repository.UserRepositoryPort;
-import br.com.bip.infrastructure.messaging.kafka.delivery.DeliveryEventProducer;
-import br.com.bip.infrastructure.messaging.kafka.financial.FinancialEventProducer;
 import br.com.bip.shared.exception.BusinessException;
 import br.com.bip.shared.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,10 +37,7 @@ class DeliveryCancellationServiceTest {
     private UserRepositoryPort userRepositoryPort;
 
     @Mock
-    private DeliveryEventProducer deliveryEventProducer;
-
-    @Mock
-    private FinancialEventProducer financialEventProducer;
+    private DeliveryInRouteCachePort inRouteCachePort;
 
     private DeliveryCancellationService deliveryCancellationService;
 
@@ -53,8 +46,7 @@ class DeliveryCancellationServiceTest {
         deliveryCancellationService = new DeliveryCancellationService(
                 deliveryRepository,
                 userRepositoryPort,
-                deliveryEventProducer,
-                financialEventProducer
+                inRouteCachePort
         );
     }
 
@@ -128,15 +120,7 @@ class DeliveryCancellationServiceTest {
         assertThat(saved.getStatus()).isEqualTo(DeliveryStatus.CANCELED);
         assertThat(saved.getCancellationReason()).contains("Cliente desistiu");
 
-        ArgumentCaptor<DeliveryCanceledEvent> eventCaptor =
-                ArgumentCaptor.forClass(DeliveryCanceledEvent.class);
-        verify(deliveryEventProducer).sendDeliveryCanceled(eventCaptor.capture());
-
-        DeliveryCanceledEvent event = eventCaptor.getValue();
-        assertThat(event.deliveryId()).isEqualTo(deliveryId);
-        assertThat(event.penaltyAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-
-        verifyNoInteractions(financialEventProducer);
+        verifyNoInteractions(inRouteCachePort);
     }
 
     @Test
@@ -170,22 +154,7 @@ class DeliveryCancellationServiceTest {
         assertThat(client.getClientBalance()).isEqualByComparingTo(BigDecimal.valueOf(500).subtract(expectedPenalty));
         assertThat(driver.getDriverBalance()).isEqualByComparingTo(expectedPenalty);
 
-        ArgumentCaptor<FinancialTransactionEvent> finCaptor =
-                ArgumentCaptor.forClass(FinancialTransactionEvent.class);
-        verify(financialEventProducer).send(finCaptor.capture());
-
-        FinancialTransactionEvent finEvent = finCaptor.getValue();
-        assertThat(finEvent.type()).isEqualTo(FinancialTransactionType.CANCELLATION_PENALTY);
-        assertThat(finEvent.amount()).isEqualByComparingTo(expectedPenalty);
-        assertThat(finEvent.relatedDeliveryId()).isEqualTo(deliveryId);
-
-        ArgumentCaptor<DeliveryCanceledEvent> cancelCaptor =
-                ArgumentCaptor.forClass(DeliveryCanceledEvent.class);
-        verify(deliveryEventProducer).sendDeliveryCanceled(cancelCaptor.capture());
-
-        DeliveryCanceledEvent cancelEvent = cancelCaptor.getValue();
-        assertThat(cancelEvent.penaltyAmount()).isEqualByComparingTo(expectedPenalty);
-        assertThat(cancelEvent.cancellationReason()).contains("multa de 30% aplicada");
+        verify(inRouteCachePort).deleteById(deliveryId);
     }
 
     @Test
@@ -209,7 +178,7 @@ class DeliveryCancellationServiceTest {
                 .hasMessageContaining("Entrega não pertence a este cliente");
 
         verify(deliveryRepository, never()).save(any());
-        verifyNoInteractions(deliveryEventProducer, financialEventProducer);
+        verifyNoInteractions(inRouteCachePort);
     }
 
     @Test
@@ -232,7 +201,7 @@ class DeliveryCancellationServiceTest {
                 .hasMessageContaining("Entrega não pode ser cancelada");
 
         verify(deliveryRepository, never()).save(any());
-        verifyNoInteractions(deliveryEventProducer, financialEventProducer);
+        verifyNoInteractions(inRouteCachePort);
     }
 
     @Test
@@ -247,6 +216,6 @@ class DeliveryCancellationServiceTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Cliente não encontrado");
 
-        verifyNoInteractions(deliveryRepository, deliveryEventProducer, financialEventProducer);
+        verifyNoInteractions(deliveryRepository, inRouteCachePort);
     }
 }
