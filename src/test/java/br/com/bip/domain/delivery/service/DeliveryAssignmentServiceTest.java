@@ -3,6 +3,7 @@ package br.com.bip.domain.delivery.service;
 import br.com.bip.application.delivery.dto.DeliveryResponse;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
 import br.com.bip.domain.user.model.UserRole;
@@ -34,13 +35,17 @@ class DeliveryAssignmentServiceTest {
     @Mock
     private UserRepositoryPort userRepositoryPort;
 
+    @Mock
+    private DeliveryInRouteCachePort inRouteCachePort;
+
     private DeliveryAssignmentService deliveryAssignmentService;
 
     @BeforeEach
     void setUp() {
         deliveryAssignmentService = new DeliveryAssignmentService(
                 deliveryRepository,
-                userRepositoryPort
+                userRepositoryPort,
+                inRouteCachePort
         );
     }
 
@@ -97,6 +102,8 @@ class DeliveryAssignmentServiceTest {
 
         assertThat(saved.getDriverId()).isEqualTo(driverId);
         assertThat(saved.getStatus()).isEqualTo(DeliveryStatus.IN_ROUTE);
+
+        verify(inRouteCachePort).save(saved);
     }
 
     @Test
@@ -112,6 +119,7 @@ class DeliveryAssignmentServiceTest {
 
         verify(userRepositoryPort).findById(driverId);
         verifyNoInteractions(deliveryRepository);
+        verifyNoInteractions(inRouteCachePort);
     }
 
     @Test
@@ -132,6 +140,7 @@ class DeliveryAssignmentServiceTest {
 
         verify(userRepositoryPort).findById(driverId);
         verifyNoInteractions(deliveryRepository);
+        verifyNoInteractions(inRouteCachePort);
     }
 
     @Test
@@ -151,6 +160,7 @@ class DeliveryAssignmentServiceTest {
                 .hasMessageContaining("Somente entregas disponíveis podem ser aceitas");
 
         verify(deliveryRepository, never()).save(any());
+        verifyNoInteractions(inRouteCachePort);
     }
 
     @Test
@@ -171,5 +181,6 @@ class DeliveryAssignmentServiceTest {
                 .hasMessageContaining("Entrega já atribuída a um entregador");
 
         verify(deliveryRepository, never()).save(any());
+        verifyNoInteractions(inRouteCachePort);
     }
 }

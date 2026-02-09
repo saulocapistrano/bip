@@ -7,6 +7,7 @@ import br.com.bip.application.financial.messaging.FinancialTransactionEvent;
 import br.com.bip.application.financial.messaging.FinancialTransactionType;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
 import br.com.bip.domain.user.model.UserRole;
@@ -29,15 +30,18 @@ public class DeliveryCompletionService {
     private final UserRepositoryPort userRepositoryPort;
     private final DeliveryEventProducer eventProducer;
     private final FinancialEventProducer financialEventProducer;
+    private final DeliveryInRouteCachePort inRouteCachePort;
 
     public DeliveryCompletionService(DeliveryRequestRepositoryPort deliveryRepository,
                                      UserRepositoryPort userRepositoryPort,
                                      DeliveryEventProducer eventProducer,
-                                     FinancialEventProducer financialEventProducer) {
+                                     FinancialEventProducer financialEventProducer,
+                                     DeliveryInRouteCachePort inRouteCachePort) {
         this.deliveryRepository = deliveryRepository;
         this.userRepositoryPort = userRepositoryPort;
         this.eventProducer = eventProducer;
         this.financialEventProducer = financialEventProducer;
+        this.inRouteCachePort = inRouteCachePort;
     }
 
     @Transactional
@@ -69,26 +73,20 @@ public class DeliveryCompletionService {
             throw new BusinessException("Valor da entrega não informado.");
         }
 
-        BigDecimal saldoCliente = client.getClientBalance() != null
-                ? client.getClientBalance()
-                : BigDecimal.ZERO;
-
-        if (saldoCliente.compareTo(price) < 0) {
+        if (client.getClientBalance() == null || client.getClientBalance().compareTo(price) < 0) {
             throw new BusinessException("Saldo do cliente insuficiente para concluir a entrega.");
         }
 
-        BigDecimal saldoDriver = driver.getDriverBalance() != null
-                ? driver.getDriverBalance()
-                : BigDecimal.ZERO;
-
-        client.setClientBalance(saldoCliente.subtract(price));
-        driver.setDriverBalance(saldoDriver.add(price));
+        client.setClientBalance(client.getClientBalance().subtract(price));
+        driver.setDriverBalance(driver.getDriverBalance().add(price));
 
         userRepositoryPort.save(client);
         userRepositoryPort.save(driver);
 
         delivery.setStatus(DeliveryStatus.COMPLETED);
         DeliveryRequest saved = deliveryRepository.save(delivery);
+
+        inRouteCachePort.deleteById(saved.getId());
 
         DeliveryCompletedEvent deliveryEvent = DeliveryMapper.toCompletedEvent(saved);
         eventProducer.sendDeliveryCompleted(deliveryEvent);

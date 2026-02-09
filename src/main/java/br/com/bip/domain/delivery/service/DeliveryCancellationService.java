@@ -1,26 +1,21 @@
 package br.com.bip.domain.delivery.service;
 
 import br.com.bip.application.delivery.dto.DeliveryResponse;
-import br.com.bip.application.delivery.event.messaging.DeliveryCanceledEvent;
 import br.com.bip.application.delivery.mapper.DeliveryMapper;
-import br.com.bip.application.financial.messaging.FinancialTransactionEvent;
-import br.com.bip.application.financial.messaging.FinancialTransactionType;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
 import br.com.bip.domain.user.model.UserRole;
 import br.com.bip.domain.user.model.UserStatus;
 import br.com.bip.domain.user.repository.UserRepositoryPort;
-import br.com.bip.infrastructure.messaging.kafka.delivery.DeliveryEventProducer;
-import br.com.bip.infrastructure.messaging.kafka.financial.FinancialEventProducer;
 import br.com.bip.shared.exception.BusinessException;
 import br.com.bip.shared.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Service
@@ -28,17 +23,14 @@ public class DeliveryCancellationService {
 
     private final DeliveryRequestRepositoryPort deliveryRepository;
     private final UserRepositoryPort userRepositoryPort;
-    private final DeliveryEventProducer deliveryEventProducer;
-    private final FinancialEventProducer financialEventProducer;
+    private final DeliveryInRouteCachePort inRouteCachePort;
 
     public DeliveryCancellationService(DeliveryRequestRepositoryPort deliveryRepository,
                                        UserRepositoryPort userRepositoryPort,
-                                       DeliveryEventProducer deliveryEventProducer,
-                                       FinancialEventProducer financialEventProducer) {
+                                       DeliveryInRouteCachePort inRouteCachePort) {
         this.deliveryRepository = deliveryRepository;
         this.userRepositoryPort = userRepositoryPort;
-        this.deliveryEventProducer = deliveryEventProducer;
-        this.financialEventProducer = financialEventProducer;
+        this.inRouteCachePort = inRouteCachePort;
     }
 
     @Transactional
@@ -71,18 +63,6 @@ public class DeliveryCancellationService {
             delivery.setCancellationReason(finalReason);
 
             DeliveryRequest saved = deliveryRepository.save(delivery);
-
-            DeliveryCanceledEvent event = new DeliveryCanceledEvent(
-                    saved.getId(),
-                    saved.getClientId(),
-                    saved.getDriverId(),
-                    saved.getOfferedPrice(),
-                    BigDecimal.ZERO,
-                    saved.getCancellationReason(),
-                    OffsetDateTime.now()
-            );
-            deliveryEventProducer.sendDeliveryCanceled(event);
-
             return DeliveryMapper.toResponse(saved);
         }
 
@@ -102,20 +82,12 @@ public class DeliveryCancellationService {
 
             BigDecimal penalty = price.multiply(BigDecimal.valueOf(0.30));
 
-            BigDecimal saldoCliente = client.getClientBalance() != null
-                    ? client.getClientBalance()
-                    : BigDecimal.ZERO;
-
-            if (saldoCliente.compareTo(penalty) < 0) {
+            if (client.getClientBalance() == null || client.getClientBalance().compareTo(penalty) < 0) {
                 throw new BusinessException("Saldo insuficiente para cancelamento com multa de 30%.");
             }
 
-            BigDecimal saldoDriver = driver.getDriverBalance() != null
-                    ? driver.getDriverBalance()
-                    : BigDecimal.ZERO;
-
-            client.setClientBalance(saldoCliente.subtract(penalty));
-            driver.setDriverBalance(saldoDriver.add(penalty));
+            client.setClientBalance(client.getClientBalance().subtract(penalty));
+            driver.setDriverBalance(driver.getDriverBalance().add(penalty));
 
             userRepositoryPort.save(client);
             userRepositoryPort.save(driver);
@@ -125,32 +97,13 @@ public class DeliveryCancellationService {
 
             DeliveryRequest saved = deliveryRepository.save(delivery);
 
-            FinancialTransactionEvent financialEvent = new FinancialTransactionEvent(
-                    UUID.randomUUID(),
-                    FinancialTransactionType.CANCELLATION_PENALTY,
-                    client.getId(),
-                    driver.getId(),
-                    penalty,
-                    delivery.getId(),
-                    "Multa de 30% por cancelamento de entrega em rota",
-                    OffsetDateTime.now()
-            );
-            financialEventProducer.send(financialEvent);
-
-            DeliveryCanceledEvent deliveryEvent = new DeliveryCanceledEvent(
-                    saved.getId(),
-                    saved.getClientId(),
-                    saved.getDriverId(),
-                    saved.getOfferedPrice(),
-                    penalty,
-                    saved.getCancellationReason(),
-                    OffsetDateTime.now()
-            );
-            deliveryEventProducer.sendDeliveryCanceled(deliveryEvent);
+            // Saiu de IN_ROUTE -> remover do Redis
+            inRouteCachePort.deleteById(saved.getId());
 
             return DeliveryMapper.toResponse(saved);
         }
 
+        // outros status: nao pode cancelar
         throw new BusinessException("Entrega não pode ser cancelada no status atual: " + delivery.getStatus());
     }
 }
