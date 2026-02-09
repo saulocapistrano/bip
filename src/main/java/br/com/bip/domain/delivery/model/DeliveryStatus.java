@@ -1,9 +1,9 @@
 package br.com.bip.domain.delivery.model;
 
 public enum DeliveryStatus {
-    CREATED,
     AVAILABLE,
-    IN_DELIVERY,
-    COMPLETED,
-    CANCELED
+    IN_ROUTE,
+    CANCELED,
+    RETURNED_TO_POOL,
+    COMPLETED
 }

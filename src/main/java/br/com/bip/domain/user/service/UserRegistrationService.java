@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 public class UserRegistrationService {
 
@@ -62,6 +64,11 @@ public class UserRegistrationService {
                 newUser.getPhone(),
                 newUser.getPhone() != null ? newUser.getPhone().length() : null
         );
+
+        if (requiredRole == UserRole.BIP_ENTREGADOR) {
+            newUser.setDriverScore(BigDecimal.valueOf(1000));
+            newUser.setDriverBalance(BigDecimal.ZERO);
+        }
 
         User saved = userRepositoryPort.save(newUser);
         return UserMapper.toResponse(saved);

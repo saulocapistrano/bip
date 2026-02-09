@@ -5,6 +5,8 @@ import br.com.bip.application.user.dto.UserResponse;
 import br.com.bip.domain.user.model.User;
 import br.com.bip.domain.user.model.UserStatus;
 
+import java.math.BigDecimal;
+
 public class UserMapper {
 
     private UserMapper(){
@@ -18,6 +20,9 @@ public class UserMapper {
                 .phone(request.phone())
                 .role(request.role())
                 .status(UserStatus.PENDING_APPROVAL)
+                .clientBalance(BigDecimal.ZERO)
+                .driverBalance(BigDecimal.ZERO)
+                .driverScore(BigDecimal.ZERO)
                 .build();
     }
 

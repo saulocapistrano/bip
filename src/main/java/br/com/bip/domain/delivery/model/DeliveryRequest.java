@@ -1,16 +1,16 @@
 package br.com.bip.domain.delivery.model;
 
-import br.com.bip.domain.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "delivery_request")
+@Table(name = "delivery_requests")
 @Getter
 @Setter
 @Builder
@@ -19,24 +19,15 @@ import java.util.UUID;
 public class DeliveryRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue
     @Column(name = "id", columnDefinition = "UUID")
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id", nullable = false)
-    private User client;
+    @Column(name = "client_id", nullable = false, columnDefinition = "UUID")
+    private UUID clientId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "driver_id")
-    private User driver;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private DeliveryStatus status;
-
-    @Column(name = "content_description", nullable = false, length = 255)
-    private String contentDescription;
+    @Column(name = "driver_id", columnDefinition = "UUID")
+    private UUID driverId;
 
     @Column(name = "pickup_address", nullable = false, length = 255)
     private String pickupAddress;
@@ -44,20 +35,30 @@ public class DeliveryRequest {
     @Column(name = "delivery_address", nullable = false, length = 255)
     private String deliveryAddress;
 
+    @Column(name = "description", nullable = false, length = 500)
+    private String description;
+
+    @Column(name = "weight_kg", nullable = false, precision = 10, scale = 2)
+    private BigDecimal weightKg;
+
     @Column(name = "offered_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal offeredPrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 30)
+    private DeliveryStatus status;
+
+    @Column(name = "cancellation_reason", length = 500)
+    private String cancellationReason;
+
+    @Column(name = "return_reason", length = 500)
+    private String returnReason;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "accepted_at")
-    private OffsetDateTime acceptedAt;
-
-    @Column(name = "delivered_at")
-    private OffsetDateTime deliveredAt;
-
-    @Column(name = "canceled_at")
-    private OffsetDateTime canceledAt;
-
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
 }

@@ -3,3 +3,5 @@ databaseChangeLog:
       file:  db/changelog/db.changelog-1.0-users.yaml
   - include:
       file:  db/changelog/db.changelog-1.1-delivery-request.yaml
+  - include:
+      file:  db/changelog/db.changelog-1.2-users-financial.yaml
