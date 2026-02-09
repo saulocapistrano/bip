@@ -2,6 +2,8 @@ package br.com.bip.application.delivery.mapper;
 
 import br.com.bip.application.delivery.dto.DeliveryCreateRequest;
 import br.com.bip.application.delivery.dto.DeliveryResponse;
+import br.com.bip.application.delivery.event.messaging.DeliveryCanceledEvent;
+import br.com.bip.application.delivery.event.messaging.DeliveryCompletedEvent;
 import br.com.bip.application.delivery.event.messaging.DeliveryRequestedEvent;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
@@ -49,6 +51,28 @@ public final class DeliveryMapper {
                 delivery.getOfferedPrice(),
                 delivery.getStatus(),
                 delivery.getCreatedAt() != null ? delivery.getCreatedAt() : OffsetDateTime.now()
+        );
+    }
+
+    public static DeliveryCompletedEvent toCompletedEvent(DeliveryRequest delivery) {
+        return new DeliveryCompletedEvent(
+                delivery.getId(),
+                delivery.getClientId(),
+                delivery.getDriverId(),
+                delivery.getOfferedPrice(),
+                delivery.getUpdatedAt() != null ? delivery.getUpdatedAt() : OffsetDateTime.now()
+        );
+    }
+
+    public static DeliveryCanceledEvent toCanceledEvent(DeliveryRequest delivery) {
+        return new DeliveryCanceledEvent(
+                delivery.getId(),
+                delivery.getClientId(),
+                delivery.getDriverId(),
+                delivery.getOfferedPrice(),
+                null,
+                delivery.getCancellationReason(),
+                delivery.getUpdatedAt() != null ? delivery.getUpdatedAt() : OffsetDateTime.now()
         );
     }
 }
