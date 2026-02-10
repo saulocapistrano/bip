@@ -6,6 +6,7 @@ import br.com.bip.application.delivery.dto.DeliveryResponse;
 import br.com.bip.application.delivery.event.messaging.DeliveryRequestedEvent;
 import br.com.bip.application.delivery.mapper.DeliveryMapper;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
+import br.com.bip.domain.delivery.port.DeliveryRealtimeNotifierPort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
 import br.com.bip.domain.user.model.UserRole;
@@ -25,13 +26,16 @@ public class DeliveryCreationService {
     private final DeliveryRequestRepositoryPort deliveryRepository;
     private final UserRepositoryPort userRepositoryPort;
     private final DeliveryEventProducer eventProducer;
+    private final DeliveryRealtimeNotifierPort realtimeNotifier;
 
     public DeliveryCreationService(DeliveryRequestRepositoryPort deliveryRepository,
                                    UserRepositoryPort userRepositoryPort,
-                                   DeliveryEventProducer eventProducer) {
+                                   DeliveryEventProducer eventProducer,
+                                   DeliveryRealtimeNotifierPort realtimeNotifier) {
         this.deliveryRepository = deliveryRepository;
         this.userRepositoryPort = userRepositoryPort;
         this.eventProducer = eventProducer;
+        this.realtimeNotifier = realtimeNotifier;
     }
 
     @Transactional
@@ -63,6 +67,8 @@ public class DeliveryCreationService {
         DeliveryRequestedEvent event = DeliveryMapper.toRequestedEvent(saved);
         eventProducer.sendDeliveryRequested(event);
 
+        DeliveryResponse response = DeliveryMapper.toResponse(saved);
+        realtimeNotifier.notifyNewDeliveryAvailable(response);
         return DeliveryMapper.toResponse(saved);
     }
 
