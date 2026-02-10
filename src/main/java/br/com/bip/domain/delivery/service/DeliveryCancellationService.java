@@ -4,6 +4,7 @@ import br.com.bip.application.delivery.dto.DeliveryResponse;
 import br.com.bip.application.delivery.mapper.DeliveryMapper;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.port.DeliveryRealtimeNotifierPort;
 import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
@@ -24,13 +25,16 @@ public class DeliveryCancellationService {
     private final DeliveryRequestRepositoryPort deliveryRepository;
     private final UserRepositoryPort userRepositoryPort;
     private final DeliveryInRouteCachePort inRouteCachePort;
+    private final DeliveryRealtimeNotifierPort realtimeNotifier;
 
     public DeliveryCancellationService(DeliveryRequestRepositoryPort deliveryRepository,
                                        UserRepositoryPort userRepositoryPort,
-                                       DeliveryInRouteCachePort inRouteCachePort) {
+                                       DeliveryInRouteCachePort inRouteCachePort,
+                                       DeliveryRealtimeNotifierPort realtimeNotifier) {
         this.deliveryRepository = deliveryRepository;
         this.userRepositoryPort = userRepositoryPort;
         this.inRouteCachePort = inRouteCachePort;
+        this.realtimeNotifier = realtimeNotifier;
     }
 
     @Transactional
@@ -63,7 +67,11 @@ public class DeliveryCancellationService {
             delivery.setCancellationReason(finalReason);
 
             DeliveryRequest saved = deliveryRepository.save(delivery);
-            return DeliveryMapper.toResponse(saved);
+            DeliveryResponse response = DeliveryMapper.toResponse(saved);
+
+            realtimeNotifier.notifyUpdateDelivery(response);
+
+            return response;
         }
 
         if (DeliveryStatus.IN_ROUTE.equals(delivery.getStatus())) {
@@ -97,13 +105,17 @@ public class DeliveryCancellationService {
 
             DeliveryRequest saved = deliveryRepository.save(delivery);
 
-            // Saiu de IN_ROUTE -> remover do Redis
             inRouteCachePort.deleteById(saved.getId());
 
-            return DeliveryMapper.toResponse(saved);
+            DeliveryResponse response = DeliveryMapper.toResponse(saved);
+
+            realtimeNotifier.notifyUpdateToDriver(driver.getId(), response);
+
+            realtimeNotifier.notifyUpdateDelivery(response);
+
+            return response;
         }
 
-        // outros status: nao pode cancelar
         throw new BusinessException("Entrega não pode ser cancelada no status atual: " + delivery.getStatus());
     }
 }
