@@ -6,10 +6,14 @@ services:
     build: .
     image: bip-api:latest
     depends_on:
-      - postgres
-      - redis
-      - kafka
-      - keycloak
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
     ports:
       - "8087:8087"
     environment:
@@ -39,6 +43,12 @@ services:
       POSTGRES_DB: bip_db
       POSTGRES_USER: bip-user
       POSTGRES_PASSWORD: strong_bip_pass1524
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bip-user -d bip_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
     ports:
       - "5432:5432"
     volumes:
@@ -67,6 +77,12 @@ services:
     ports:
       - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
     volumes:
       - ./docker/redis/data:/data
     networks:
@@ -79,6 +95,12 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD", "cub", "zk-ready", "localhost:2181", "60"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
     ports:
       - "2181:2181"
     networks:
@@ -98,6 +120,12 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "cub", "kafka-ready", "-b", "localhost:9092", "1", "60"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
     networks:
       - bip-network
 
@@ -120,13 +148,15 @@ services:
   keycloak:
     container_name: bip-keycloak
     image: quay.io/keycloak/keycloak:24.0.0
-    command: ["start-dev"]
+    command: [ "start-dev", "--import-realm" ]
     restart: always
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8080:8080"
+    volumes:
+      - ./docker/keycloak/realm-bip.json:/opt/keycloak/data/import/realm-bip.json
     networks:
       - bip-network
 
