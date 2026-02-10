@@ -7,6 +7,7 @@ import br.com.bip.application.financial.messaging.FinancialTransactionEvent;
 import br.com.bip.application.financial.messaging.FinancialTransactionType;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.port.DeliveryRealtimeNotifierPort;
 import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
@@ -31,17 +32,20 @@ public class DeliveryCompletionService {
     private final DeliveryEventProducer eventProducer;
     private final FinancialEventProducer financialEventProducer;
     private final DeliveryInRouteCachePort inRouteCachePort;
+    private final DeliveryRealtimeNotifierPort realtimeNotifier;
 
     public DeliveryCompletionService(DeliveryRequestRepositoryPort deliveryRepository,
                                      UserRepositoryPort userRepositoryPort,
                                      DeliveryEventProducer eventProducer,
                                      FinancialEventProducer financialEventProducer,
-                                     DeliveryInRouteCachePort inRouteCachePort) {
+                                     DeliveryInRouteCachePort inRouteCachePort,
+                                     DeliveryRealtimeNotifierPort realtimeNotifier) {
         this.deliveryRepository = deliveryRepository;
         this.userRepositoryPort = userRepositoryPort;
         this.eventProducer = eventProducer;
         this.financialEventProducer = financialEventProducer;
         this.inRouteCachePort = inRouteCachePort;
+        this.realtimeNotifier = realtimeNotifier;
     }
 
     @Transactional
@@ -103,6 +107,12 @@ public class DeliveryCompletionService {
         );
         financialEventProducer.send(financialEvent);
 
-        return DeliveryMapper.toResponse(saved);
+        DeliveryResponse response = DeliveryMapper.toResponse(saved);
+
+        realtimeNotifier.notifyUpdateToDriver(driver.getId(), response);
+
+        realtimeNotifier.notifyUpdateDelivery(response);
+
+        return response;
     }
 }

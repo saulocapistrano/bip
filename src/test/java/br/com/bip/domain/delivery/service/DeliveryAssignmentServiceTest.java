@@ -3,6 +3,7 @@ package br.com.bip.domain.delivery.service;
 import br.com.bip.application.delivery.dto.DeliveryResponse;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.port.DeliveryRealtimeNotifierPort;
 import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
@@ -38,6 +39,9 @@ class DeliveryAssignmentServiceTest {
     @Mock
     private DeliveryInRouteCachePort inRouteCachePort;
 
+    @Mock
+    private DeliveryRealtimeNotifierPort realtimeNotifier;
+
     private DeliveryAssignmentService deliveryAssignmentService;
 
     @BeforeEach
@@ -45,7 +49,8 @@ class DeliveryAssignmentServiceTest {
         deliveryAssignmentService = new DeliveryAssignmentService(
                 deliveryRepository,
                 userRepositoryPort,
-                inRouteCachePort
+                inRouteCachePort,
+                realtimeNotifier
         );
     }
 
@@ -104,6 +109,9 @@ class DeliveryAssignmentServiceTest {
         assertThat(saved.getStatus()).isEqualTo(DeliveryStatus.IN_ROUTE);
 
         verify(inRouteCachePort).save(saved);
+
+        verify(realtimeNotifier).notifyUpdateToDriver(driverId, response);
+        verify(realtimeNotifier).notifyUpdateDelivery(response);
     }
 
     @Test
@@ -120,6 +128,7 @@ class DeliveryAssignmentServiceTest {
         verify(userRepositoryPort).findById(driverId);
         verifyNoInteractions(deliveryRepository);
         verifyNoInteractions(inRouteCachePort);
+        verifyNoInteractions(realtimeNotifier);
     }
 
     @Test
@@ -141,6 +150,7 @@ class DeliveryAssignmentServiceTest {
         verify(userRepositoryPort).findById(driverId);
         verifyNoInteractions(deliveryRepository);
         verifyNoInteractions(inRouteCachePort);
+        verifyNoInteractions(realtimeNotifier);
     }
 
     @Test
@@ -161,6 +171,7 @@ class DeliveryAssignmentServiceTest {
 
         verify(deliveryRepository, never()).save(any());
         verifyNoInteractions(inRouteCachePort);
+        verifyNoInteractions(realtimeNotifier);
     }
 
     @Test
@@ -182,5 +193,6 @@ class DeliveryAssignmentServiceTest {
 
         verify(deliveryRepository, never()).save(any());
         verifyNoInteractions(inRouteCachePort);
+        verifyNoInteractions(realtimeNotifier);
     }
 }

@@ -6,6 +6,7 @@ import br.com.bip.application.financial.messaging.FinancialTransactionEvent;
 import br.com.bip.application.financial.messaging.FinancialTransactionType;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.port.DeliveryRealtimeNotifierPort;
 import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
@@ -50,6 +51,9 @@ class DeliveryCompletionServiceTest {
     @Mock
     private DeliveryInRouteCachePort inRouteCachePort;
 
+    @Mock
+    private DeliveryRealtimeNotifierPort realtimeNotifier;
+
     private DeliveryCompletionService deliveryCompletionService;
 
     @BeforeEach
@@ -59,7 +63,8 @@ class DeliveryCompletionServiceTest {
                 userRepositoryPort,
                 deliveryEventProducer,
                 financialEventProducer,
-                inRouteCachePort
+                inRouteCachePort,
+                realtimeNotifier
         );
     }
 
@@ -152,6 +157,9 @@ class DeliveryCompletionServiceTest {
         assertThat(finEvent.relatedDeliveryId()).isEqualTo(deliveryId);
 
         verify(inRouteCachePort).deleteById(deliveryId);
+
+        verify(realtimeNotifier).notifyUpdateToDriver(driverId, response);
+        verify(realtimeNotifier).notifyUpdateDelivery(response);
     }
 
     @Test
@@ -166,7 +174,7 @@ class DeliveryCompletionServiceTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Entregador não encontrado");
 
-        verifyNoInteractions(deliveryRepository, deliveryEventProducer, financialEventProducer, inRouteCachePort);
+        verifyNoInteractions(deliveryRepository, deliveryEventProducer, financialEventProducer, inRouteCachePort, realtimeNotifier);
     }
 
     @Test
@@ -192,6 +200,7 @@ class DeliveryCompletionServiceTest {
         verify(deliveryRepository, never()).save(any());
         verifyNoInteractions(deliveryEventProducer, financialEventProducer);
         verifyNoInteractions(inRouteCachePort);
+        verifyNoInteractions(realtimeNotifier);
     }
 
     @Test
@@ -217,6 +226,7 @@ class DeliveryCompletionServiceTest {
 
         verify(deliveryRepository, never()).save(any());
         verifyNoInteractions(deliveryEventProducer, financialEventProducer);
+        verifyNoInteractions(realtimeNotifier);
     }
 
     @Test
@@ -247,5 +257,6 @@ class DeliveryCompletionServiceTest {
         verify(deliveryRepository, never()).save(any());
         verifyNoInteractions(deliveryEventProducer, financialEventProducer);
         verifyNoInteractions(inRouteCachePort);
+        verifyNoInteractions(realtimeNotifier);
     }
 }
