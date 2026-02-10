@@ -11,6 +11,7 @@ import java.util.UUID;
 public interface UserRepositoryPort {
 
     User save(User user);
+    long count();
     List<User> findAll();
     Optional<User> findById(UUID id);
     Optional<User> findByEmail(String email);

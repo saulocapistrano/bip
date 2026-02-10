@@ -1,0 +1,100 @@
+{
+  "realm": "bip",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "bip-admin",
+        "description": "Administrador do sistema BIP"
+      },
+      {
+        "name": "bip-cliente",
+        "description": "Cliente que solicita entregas"
+      },
+      {
+        "name": "bip-entregador",
+        "description": "Entregador que aceita e conclui entregas"
+      }
+    ]
+  },
+
+  "users": [
+    {
+      "username": "tortorelli",
+      "enabled": true,
+      "email": "tortorelli@bip.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["bip-admin"]
+    },
+    {
+      "username": "clicia",
+      "enabled": true,
+      "email": "clicia@bip.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "cliente123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["bip-cliente"]
+    },
+    {
+      "username": "elias",
+      "enabled": true,
+      "email": "elias@bip.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "cliente123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["bip-cliente"]
+    },
+    {
+      "username": "saulo",
+      "enabled": true,
+      "email": "saulo@bip.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "entregador123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["bip-entregador"]
+    }
+  ],
+
+  "clients": [
+    {
+      "clientId": "bip-frontend",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
+    }
+  ]
+}
