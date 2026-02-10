@@ -25,6 +25,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public long count() {
+        return userJpaRepository.count();
+    }
+
+    @Override
     public List<User> findAll() {
         return userJpaRepository.findAll();
     }
