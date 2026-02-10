@@ -6,11 +6,13 @@ import br.com.bip.application.delivery.event.messaging.DeliveryRequestedEvent;
 import br.com.bip.application.delivery.service.DeliveryCreationService;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.port.DeliveryRealtimeNotifierPort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
 import br.com.bip.domain.user.model.UserRole;
 import br.com.bip.domain.user.model.UserStatus;
 import br.com.bip.domain.user.repository.UserRepositoryPort;
+
 import br.com.bip.infrastructure.messaging.kafka.delivery.DeliveryEventProducer;
 import br.com.bip.shared.exception.BusinessException;
 import br.com.bip.shared.exception.NotFoundException;
@@ -42,6 +44,9 @@ class DeliveryCreationServiceTest {
     @Mock
     private DeliveryEventProducer deliveryEventProducer;
 
+    @Mock
+    private DeliveryRealtimeNotifierPort realtimeNotifier;
+
     private DeliveryCreationService deliveryCreationService;
 
     @BeforeEach
@@ -49,7 +54,8 @@ class DeliveryCreationServiceTest {
         deliveryCreationService = new DeliveryCreationService(
                 deliveryRepository,
                 userRepositoryPort,
-                deliveryEventProducer
+                deliveryEventProducer,
+                realtimeNotifier
         );
     }
 
@@ -124,6 +130,8 @@ class DeliveryCreationServiceTest {
         assertThat(event.deliveryId()).isEqualTo(saved.getId());
         assertThat(event.clientId()).isEqualTo(clientId);
 
+        verify(realtimeNotifier).notifyNewDeliveryAvailable(response);
+
         verify(userRepositoryPort).findById(clientId);
         verifyNoMoreInteractions(userRepositoryPort);
     }
@@ -149,6 +157,7 @@ class DeliveryCreationServiceTest {
 
         verify(userRepositoryPort).findById(clientId);
         verifyNoInteractions(deliveryRepository, deliveryEventProducer);
+        verifyNoInteractions(realtimeNotifier);
     }
 
     @Test
@@ -174,5 +183,6 @@ class DeliveryCreationServiceTest {
 
         verify(userRepositoryPort).findById(clientId);
         verifyNoInteractions(deliveryRepository, deliveryEventProducer);
+        verifyNoInteractions(realtimeNotifier);
     }
 }
