@@ -4,6 +4,7 @@ import br.com.bip.application.delivery.dto.DeliveryResponse;
 import br.com.bip.application.delivery.mapper.DeliveryMapper;
 import br.com.bip.domain.delivery.model.DeliveryRequest;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
+import br.com.bip.domain.delivery.port.DeliveryRealtimeNotifierPort;
 import br.com.bip.domain.delivery.repository.DeliveryInRouteCachePort;
 import br.com.bip.domain.delivery.repository.DeliveryRequestRepositoryPort;
 import br.com.bip.domain.user.model.User;
@@ -23,11 +24,15 @@ public class DeliveryAssignmentService {
     private final DeliveryRequestRepositoryPort deliveryRepository;
     private final UserRepositoryPort userRepositoryPort;
     private final DeliveryInRouteCachePort inRouteCachePort;
+    private final DeliveryRealtimeNotifierPort realtimeNotifier;
     public DeliveryAssignmentService(DeliveryRequestRepositoryPort deliveryRepository,
-                                     UserRepositoryPort userRepositoryPort, DeliveryInRouteCachePort inRouteCachePort) {
+                                     UserRepositoryPort userRepositoryPort,
+                                     DeliveryInRouteCachePort inRouteCachePort,
+                                     DeliveryRealtimeNotifierPort realtimeNotifier) {
         this.deliveryRepository = deliveryRepository;
         this.userRepositoryPort = userRepositoryPort;
         this.inRouteCachePort = inRouteCachePort;
+        this.realtimeNotifier =realtimeNotifier;
     }
 
     @Transactional
@@ -62,6 +67,13 @@ public class DeliveryAssignmentService {
 
         inRouteCachePort.save(saved);
 
+        DeliveryResponse response = DeliveryMapper.toResponse(saved);
+
+        // notifica o driver que assumiu a entrega
+        realtimeNotifier.notifyUpdateToDriver(driver.getId(), response);
+
+        // notfica que a entrega saiu da "vitrine" AVAILABLE (para front atualizar listas)
+        realtimeNotifier.notifyUpdateDelivery(response);
 
 
         //  disparar evento Kafka / WebSocket notificando o cliente
