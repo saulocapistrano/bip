@@ -1,10 +1,10 @@
 databaseChangeLog:
   - changeSet:
-      id: 1.1-create-delivery-requests
+      id: 1.0-create-users-tabledb
       author: bip
       changes:
         - createTable:
-            tableName: delivery_requests
+            tableName: users
             columns:
               - column:
                   name: id
@@ -12,73 +12,42 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
-
               - column:
-                  name: client_id
-                  type: UUID
-                  constraints:
-                    nullable: false
-
-              - column:
-                  name: driver_id
-                  type: UUID
+                  name: keycloak_id
+                  type: VARCHAR(255)
                   constraints:
                     nullable: true
-
               - column:
-                  name: pickup_address
-                  type: VARCHAR(255)
+                  name: name
+                  type: VARCHAR(150)
                   constraints:
                     nullable: false
-
               - column:
-                  name: delivery_address
-                  type: VARCHAR(255)
+                  name: email
+                  type: VARCHAR(150)
                   constraints:
                     nullable: false
-
+                    unique: true
               - column:
-                  name: description
-                  type: VARCHAR(500)
+                  name: phone
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: role
+                  type: VARCHAR(30)
                   constraints:
                     nullable: false
-
-              - column:
-                  name: weight_kg
-                  type: NUMERIC(10,2)
-                  constraints:
-                    nullable: false
-
-              - column:
-                  name: offered_price
-                  type: NUMERIC(10,2)
-                  constraints:
-                    nullable: false
-
               - column:
                   name: status
                   type: VARCHAR(30)
                   constraints:
                     nullable: false
-
-              - column:
-                  name: cancellation_reason
-                  type: VARCHAR(500)
-                  constraints:
-                    nullable: true
-
-              - column:
-                  name: return_reason
-                  type: VARCHAR(500)
-                  constraints:
-                    nullable: true
-
               - column:
                   name: created_at
                   type: TIMESTAMP WITH TIME ZONE
                   constraints:
                     nullable: false
-
               - column:
                   name: updated_at
                   type: TIMESTAMP WITH TIME ZONE

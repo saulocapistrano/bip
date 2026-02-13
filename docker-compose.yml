@@ -31,6 +31,7 @@ services:
       KEYCLOAK_AUTH_SERVER_URL: http://keycloak:8080
       KEYCLOAK_REALM: bip-realm
       KEYCLOAK_CLIENT_ID: bip-api
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/bip/protocol/openid-connect/certs
 
     networks:
       - bip-network
@@ -156,7 +157,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./docker/keycloak/realm-bip.json:/opt/keycloak/data/import/realm-bip.json
+      - ./keycloak/realm-bip.json:/opt/keycloak/data/import/realm-bip.json
+      - ./keycloak/themes:/opt/keycloak/themes:ro
     networks:
       - bip-network
 

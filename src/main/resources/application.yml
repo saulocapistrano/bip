@@ -36,7 +36,6 @@ spring:
       port: 6379
       database: 0
       timeout: 2000
-      # password: sua_senha_se_tiver
 
   session:
     store-type: redis
@@ -65,6 +64,12 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/bip/protocol/openid-connect/certs
+
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -88,5 +93,6 @@ logging:
     org.springframework.messaging: DEBUG
     org.springframework.data.redis: DEBUG
     org.springframework.web.socket: DEBUG
+    liquibase: DEBUG
     # org.hibernate.SQL: DEBUG
     # org.hibernate.type.descriptor.sql.BasicBinder: TRACE

@@ -3,6 +3,7 @@ package br.com.bip.application.user.dto;
 import br.com.bip.domain.user.model.UserRole;
 import br.com.bip.domain.user.model.UserStatus;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -13,6 +14,9 @@ public record UserResponse(
         String phone,
         UserRole role,
         UserStatus status,
+        BigDecimal clientBalance,
+        BigDecimal driverBalance,
+        BigDecimal driverScore,
         OffsetDateTime createdAt
 ) {
 }

@@ -2,12 +2,14 @@ package br.com.bip.api.rest.delivery;
 
 import br.com.bip.api.handler.exception.GlobalExceptionHandler;
 import br.com.bip.application.delivery.dto.DeliveryResponse;
+import br.com.bip.application.security.AuthenticatedUserResolver;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
 import br.com.bip.domain.delivery.service.DeliveryAssignmentService;
 import br.com.bip.domain.delivery.service.DeliveryCompletionService;
 import br.com.bip.domain.delivery.service.DriverDeliveryQueryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -26,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = DeliveryDriverController.class)
 @Import(GlobalExceptionHandler.class)
+@AutoConfigureMockMvc(addFilters = false)
 class DeliveryDriverControllerTest {
 
     @Autowired
@@ -39,6 +42,9 @@ class DeliveryDriverControllerTest {
 
     @MockBean
     private DeliveryCompletionService deliveryCompletionService;
+
+    @MockBean
+    private AuthenticatedUserResolver authenticatedUserResolver;
 
     @Test
     void listAvailable_deveRetornar200() throws Exception {

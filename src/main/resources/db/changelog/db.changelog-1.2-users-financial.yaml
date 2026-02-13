@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 1.2-add-users-financial-columns
+      id: 1.2-add-users-financial-columns-db
       author: bip
       changes:
         - addColumn:

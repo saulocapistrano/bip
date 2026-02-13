@@ -15,6 +15,7 @@ public interface UserRepositoryPort {
     List<User> findAll();
     Optional<User> findById(UUID id);
     Optional<User> findByEmail(String email);
+    Optional<User> findByKeycloakId(String keycloakId);
     boolean existsByEmail(String email);
     List<User> findByRoleAndStatus(UserRole role, UserStatus status);
 

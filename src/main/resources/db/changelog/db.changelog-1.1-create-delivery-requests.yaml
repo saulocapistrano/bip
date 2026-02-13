@@ -1,10 +1,10 @@
 databaseChangeLog:
   - changeSet:
-      id: 1.1-create-delivery-request
+      id: 1.1-create-delivery-requests-table
       author: bip
       changes:
         - createTable:
-            tableName: delivery_request
+            tableName: delivery_requests
             columns:
               - column:
                   name: id
@@ -12,83 +12,63 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
-
               - column:
                   name: client_id
                   type: UUID
                   constraints:
                     nullable: false
-
               - column:
                   name: driver_id
                   type: UUID
                   constraints:
                     nullable: true
-
-              - column:
-                  name: status
-                  type: VARCHAR(30)
-                  constraints:
-                    nullable: false
-
-              - column:
-                  name: content_description
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-
               - column:
                   name: pickup_address
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
-
               - column:
                   name: delivery_address
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
-
+              - column:
+                  name: description
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: weight_kg
+                  type: NUMERIC(10,2)
+                  constraints:
+                    nullable: false
               - column:
                   name: offered_price
                   type: NUMERIC(10,2)
                   constraints:
                     nullable: false
-
+              - column:
+                  name: status
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cancellation_reason
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: return_reason
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: true
               - column:
                   name: created_at
                   type: TIMESTAMP WITH TIME ZONE
                   constraints:
                     nullable: false
-
               - column:
-                  name: accepted_at
+                  name: updated_at
                   type: TIMESTAMP WITH TIME ZONE
                   constraints:
-                    nullable: true
-
-              - column:
-                  name: delivered_at
-                  type: TIMESTAMP WITH TIME ZONE
-                  constraints:
-                    nullable: true
-
-              - column:
-                  name: canceled_at
-                  type: TIMESTAMP WITH TIME ZONE
-                  constraints:
-                    nullable: true
-
-              - addForeignKeyConstraint:
-                  baseTableName: delivery_request
-                  baseColumnNames: client_id
-                  referencedTableName: users
-                  referencedColumnNames: id
-                  constraintName: fk_delivery_request_client
-
-              - addForeignKeyConstraint:
-                  baseTableName: delivery_request
-                  baseColumnNames: driver_id
-                  referencedTableName: users
-                  referencedColumnNames: id
-                  constraintName: fk_delivery_request_driver
+                    nullable: false

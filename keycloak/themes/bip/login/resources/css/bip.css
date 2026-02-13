@@ -1,0 +1,32 @@
+:root {
+  --bip-primary: #0d6efd;
+  --bip-primary-hover: #0b5ed7;
+  --bip-link: #0d6efd;
+}
+
+#kc-header,
+#kc-header-wrapper {
+  display: none;
+}
+
+.pf-v5-c-login__header img {
+  max-height: 56px;
+}
+
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--bip-primary);
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  background-color: var(--bip-primary-hover);
+}
+
+a,
+.pf-v5-c-login__main-footer-links-item a {
+  color: var(--bip-link);
+}
+
+a:hover,
+.pf-v5-c-login__main-footer-links-item a:hover {
+  color: var(--bip-primary-hover);
+}

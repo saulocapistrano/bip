@@ -2,10 +2,12 @@ package br.com.bip.api.rest.delivery;
 
 import br.com.bip.api.handler.exception.GlobalExceptionHandler;
 import br.com.bip.application.delivery.dto.DeliveryResponse;
+import br.com.bip.application.security.AuthenticatedUserResolver;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
 import br.com.bip.domain.delivery.service.DeliveryInRouteQueryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -24,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = DriverInRouteController.class)
 @Import(GlobalExceptionHandler.class)
+@AutoConfigureMockMvc(addFilters = false)
 class DriverInRouteControllerTest {
 
     @Autowired
@@ -31,6 +34,9 @@ class DriverInRouteControllerTest {
 
     @MockitoBean
     private DeliveryInRouteQueryService deliveryInRouteQueryService;
+
+    @MockitoBean
+    private AuthenticatedUserResolver authenticatedUserResolver;
 
     @Test
     void listInRoute_deveRetornar200() throws Exception {

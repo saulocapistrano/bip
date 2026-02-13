@@ -24,9 +24,79 @@ Tudo foi pensado para o avaliador conseguir subir o ambiente com `docker compose
 
 ---
 
-## 2. Arquitetura
+## 2. Como executar
 
-### 2.1. Organização de pacotes
+### 2.1. Pré-requisitos
+
+- Docker Desktop instalado e em execução.
+- Git instalado.
+- Opcional: Postman para rodar os fluxos automatizados.
+
+### 2.2. Clonar repositórios
+
+Backend:
+
+```bash
+git clone https://github.com/saulocapistrano/bip.git bip-backend
+cd bip-backend
+```
+
+### 2.3. Subir o backend
+
+Na raiz do backend:
+
+```bash
+docker compose up
+```
+
+Isso sobe:
+
+- `bip-api` (Spring Boot na porta 8087)
+- `bip-postgres`
+- `bip-pgadmin`
+- `bip-redis`
+- `bip-zookeeper`
+- `bip-kafka`
+- `bip-kafka-ui`
+- `bip-keycloak` (porta 8080, com realm importado)
+
+O perfil ativo é `dev` (`SPRING_PROFILES_ACTIVE=dev`), o que ativa:
+
+- migrações Liquibase;
+- seeder `DevDataInitializer`:
+  - cria usuários padrão (admin, clientes, entregador) no Postgres;
+  - cria entregas `AVAILABLE` para os clientes.
+
+### 2.4. Subir o frontend (opcional)
+
+Na raiz do frontend:
+
+```bash
+git clone <url-do-repo-frontend> bip-frontend
+cd bip-frontend
+docker compose up --build
+```
+
+Ou conforme instruções específicas do projeto frontend (por exemplo, `npm install && npm start`).
+
+Por padrão, o frontend costuma rodar em:
+
+- `http://localhost:4200`
+
+Ajuste se o docker-compose do frontend estiver usando outra porta.
+
+### 2.5. URLs úteis
+
+- API backend: `http://localhost:8087`
+- Keycloak (admin console e realm bip): `http://localhost:8080`
+- pgAdmin: `http://localhost:5050`
+- Kafka UI: `http://localhost:8081`
+
+---
+
+## 3. Arquitetura
+
+### 3.1. Organização de pacotes
 
 Arquitetura em camadas, DDD-friendly:
 
@@ -57,9 +127,9 @@ Não é um "DDD puro" isolando totalmente JPA do domínio, mas o desenho segue c
 
 ---
 
-## 3. Regras de negócio implementadas
+## 4. Regras de negócio implementadas
 
-### 3.1. Perfis de usuário
+### 4.1. Perfis de usuário
 
 Perfis técnicos no backend:
 
@@ -83,7 +153,7 @@ Regras:
   - aceitar entregas;
   - concluir entregas.
 
-### 3.2. Carteira e saldo
+### 4.2. Carteira e saldo
 
 Campos adicionados em `User`:
 
@@ -102,7 +172,7 @@ Regras principais:
   - todo entregador começa com `driverScore = 1000`;
   - campo e regra de bloqueio estão modelados para uso futuro (redução de 0.05 e bloqueio abaixo de 499 ainda não implementados na lógica de devolução).
 
-### 3.3. Solicitação de entrega
+### 4.3. Solicitação de entrega
 
 Quem pode solicitar:
 
@@ -128,7 +198,7 @@ Comportamento ao criar:
 - evento `DeliveryRequestedEvent` publicado em Kafka no tópico `bip.delivery.requested`;
 - entrega aparece na "vitrine" (`/api/driver/deliveries/available`).
 
-### 3.4. Lista de entregas (vitrine x visão do cliente)
+### 4.4. Lista de entregas (vitrine x visão do cliente)
 
 - Cliente:
   - só enxerga as próprias entregas, em qualquer status (`AVAILABLE`, `IN_ROUTE`, `COMPLETED`, `CANCELED`);
@@ -138,7 +208,7 @@ Comportamento ao criar:
   - pode listar apenas as entregas atribuídas a ele;
   - serviço: `DriverDeliveryQueryService`.
 
-### 3.5. Aceite da entrega pelo entregador
+### 4.5. Aceite da entrega pelo entregador
 
 Serviço: `DeliveryAssignmentService`.
 
@@ -161,7 +231,7 @@ Ao aceitar:
 - salva cópia no Redis via `DeliveryInRouteCachePort` (entrega em rota);
 - no frontend, isso corresponde a mudar visualmente para "em rota" (tag amarela).
 
-### 3.6. Cancelamento pelo cliente
+### 4.6. Cancelamento pelo cliente
 
 Serviço: `DeliveryCancellationService`.
 
@@ -175,21 +245,21 @@ Cenários:
 
 1. Entrega `AVAILABLE`:
 
-   - cliente pode cancelar sem multa;
-   - status muda para `CANCELED`;
-   - `cancellationReason` recebe a razão informada (ou padrão).
+  - cliente pode cancelar sem multa;
+  - status muda para `CANCELED`;
+  - `cancellationReason` recebe a razão informada (ou padrão).
 
 2. Entrega `IN_ROUTE`:
 
-   - cliente pode solicitar cancelamento, com multa de 30%;
-   - se não houver `driverId`, é erro;
-   - calcula `penalty = 0.30 * offeredPrice`;
-   - se `clientBalance < penalty`, lança erro de saldo insuficiente;
-   - debita `penalty` do cliente;
-   - credita `penalty` no entregador;
-   - status muda para `CANCELED`;
-   - `cancellationReason` recebe a razão + "(multa de 30% aplicada)";
-   - entrega removida do Redis (`DeliveryInRouteCachePort.deleteById`).
+  - cliente pode solicitar cancelamento, com multa de 30%;
+  - se não houver `driverId`, é erro;
+  - calcula `penalty = 0.30 * offeredPrice`;
+  - se `clientBalance < penalty`, lança erro de saldo insuficiente;
+  - debita `penalty` do cliente;
+  - credita `penalty` no entregador;
+  - status muda para `CANCELED`;
+  - `cancellationReason` recebe a razão + "(multa de 30% aplicada)";
+  - entrega removida do Redis (`DeliveryInRouteCachePort.deleteById`).
 
 Eventos:
 
@@ -197,7 +267,7 @@ Eventos:
   - dispara `DeliveryCanceledEvent` em `bip.delivery.canceled`;
   - dispara `FinancialTransactionEvent` com tipo `CANCELLATION_PENALTY` (ou equivalente, conforme modelagem).
 
-### 3.7. Conclusão da entrega
+### 4.7. Conclusão da entrega
 
 Serviço: `DeliveryCompletionService`.
 
@@ -222,7 +292,7 @@ Ao concluir:
 
 ---
 
-## 4. Stack técnica
+## 5. Stack técnica
 
 - Java 17
 - Spring Boot 3.5.10
@@ -249,84 +319,6 @@ Ao concluir:
   - Postman
   - JUnit 5, Mockito
   - Jacoco (relatório em `target/site/jacoco/index.html`)
-
----
-
-## 5. Como executar
-
-### 5.1. Pré-requisitos
-
-- Docker Desktop instalado e em execução.
-- Git instalado.
-- Opcional: Postman para rodar os fluxos automatizados.
-
-### 5.2. Clonar repositórios
-
-Backend:
-
-```bash
-git clone <url-do-repo-backend> bip-backend
-cd bip-backend
-```
-
-Frontend:
-
-```bash
-git clone <url-do-repo-frontend> bip-frontend
-```
-
-### 5.3. Subir o backend
-
-Na raiz do backend:
-
-```bash
-docker compose up --build
-```
-
-Isso sobe:
-
-- `bip-api` (Spring Boot na porta 8087)
-- `bip-postgres`
-- `bip-pgadmin`
-- `bip-redis`
-- `bip-zookeeper`
-- `bip-kafka`
-- `bip-kafka-ui`
-- `bip-keycloak` (porta 8080, com realm importado)
-
-O perfil ativo é `dev` (`SPRING_PROFILES_ACTIVE=dev`), o que ativa:
-
-- migrações Liquibase;
-- seeder `DevDataInitializer`:
-  - cria usuários padrão (admin, clientes, entregador) no Postgres;
-  - cria entregas `AVAILABLE` para os clientes.
-
-### 5.4. Subir o frontend
-
-Na raiz do frontend:
-
-```bash
-docker compose up --build
-```
-
-Ou conforme instruções específicas do projeto frontend (por exemplo, `npm install && npm start`).
-
-Por padrão, o frontend costuma rodar em:
-
-- `http://localhost:4200`
-
-Ajuste se o docker-compose do frontend estiver usando outra porta.
-
-### 5.5. URLs úteis
-
-- API backend:
-  `http://localhost:8087`
-- Keycloak (admin console e realm bip):
-  `http://localhost:8080`
-- pgAdmin:
-  `http://localhost:5050`
-- Kafka UI:
-  `http://localhost:8081`
 
 ---
 
