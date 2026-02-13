@@ -89,10 +89,11 @@ logging:
   level:
     root: INFO
     org.springframework.web: INFO
-    org.springframework.kafka: DEBUG
-    org.springframework.messaging: DEBUG
-    org.springframework.data.redis: DEBUG
-    org.springframework.web.socket: DEBUG
-    liquibase: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.kafka.listener.KafkaMessageListenerContainer: WARN
+    org.springframework.messaging: INFO
+    org.springframework.data.redis: INFO
+    org.springframework.web.socket: INFO
+    liquibase: INFO
     # org.hibernate.SQL: DEBUG
     # org.hibernate.type.descriptor.sql.BasicBinder: TRACE
