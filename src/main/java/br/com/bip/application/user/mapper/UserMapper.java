@@ -34,6 +34,9 @@ public class UserMapper {
                 user.getPhone(),
                 user.getRole(),
                 user.getStatus(),
+                user.getClientBalance(),
+                user.getDriverBalance(),
+                user.getDriverScore(),
                 user.getCreatedAt()
         );
     }
