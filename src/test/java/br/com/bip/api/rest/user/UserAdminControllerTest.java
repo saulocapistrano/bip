@@ -11,12 +11,14 @@ import br.com.bip.shared.exception.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = UserAdminController.class)
 @Import(GlobalExceptionHandler.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UserAdminControllerTest {
 
     @Autowired
@@ -53,6 +56,9 @@ class UserAdminControllerTest {
                 "85999990000",
                 UserRole.BIP_CLIENTE,
                 UserStatus.APPROVED,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 OffsetDateTime.now()
         );
 
@@ -77,7 +83,7 @@ class UserAdminControllerTest {
 
     @Test
     void listPending_deveRetornar200() throws Exception {
-        UserResponse u1 = new UserResponse(UUID.randomUUID(), "A", "a@t.com", null, UserRole.BIP_ENTREGADOR, UserStatus.PENDING_APPROVAL, OffsetDateTime.now());
+        UserResponse u1 = new UserResponse(UUID.randomUUID(), "A", "a@t.com", null, UserRole.BIP_ENTREGADOR, UserStatus.PENDING_APPROVAL, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, OffsetDateTime.now());
         when(userApprovalService.listPendingByRole(UserRole.BIP_ENTREGADOR)).thenReturn(List.of(u1));
 
         mockMvc.perform(get("/admin/users/pending")
@@ -90,7 +96,7 @@ class UserAdminControllerTest {
     void update_deveRetornar200() throws Exception {
         UUID id = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest("Novo Nome", "85999990000");
-        UserResponse response = new UserResponse(id, "Novo Nome", "user@teste.com", "85999990000", UserRole.BIP_CLIENTE, UserStatus.APPROVED, OffsetDateTime.now());
+        UserResponse response = new UserResponse(id, "Novo Nome", "user@teste.com", "85999990000", UserRole.BIP_CLIENTE, UserStatus.APPROVED, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, OffsetDateTime.now());
 
         when(userManagementService.update(any(UUID.class), any(UserUpdateRequest.class))).thenReturn(response);
 
@@ -104,7 +110,7 @@ class UserAdminControllerTest {
     @Test
     void reject_deveRetornar200() throws Exception {
         UUID id = UUID.randomUUID();
-        UserResponse response = new UserResponse(id, "Nome", "user@teste.com", null, UserRole.BIP_ENTREGADOR, UserStatus.REJECTED, OffsetDateTime.now());
+        UserResponse response = new UserResponse(id, "Nome", "user@teste.com", null, UserRole.BIP_ENTREGADOR, UserStatus.REJECTED, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, OffsetDateTime.now());
         when(userApprovalService.reject(id)).thenReturn(response);
 
         mockMvc.perform(post("/admin/users/{id}/reject", id))

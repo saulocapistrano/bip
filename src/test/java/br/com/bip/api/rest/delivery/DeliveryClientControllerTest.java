@@ -4,12 +4,14 @@ import br.com.bip.api.handler.exception.GlobalExceptionHandler;
 import br.com.bip.application.delivery.dto.DeliveryCreateRequest;
 import br.com.bip.application.delivery.dto.DeliveryResponse;
 import br.com.bip.application.delivery.service.DeliveryCreationService;
+import br.com.bip.application.security.AuthenticatedUserResolver;
 import br.com.bip.domain.delivery.model.DeliveryStatus;
 import br.com.bip.domain.delivery.service.ClientDeliveryQueryService;
 import br.com.bip.domain.delivery.service.DeliveryCancellationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = DeliveryClientController.class)
 @Import(GlobalExceptionHandler.class)
+@AutoConfigureMockMvc(addFilters = false)
 class DeliveryClientControllerTest {
 
     @Autowired
@@ -46,6 +49,9 @@ class DeliveryClientControllerTest {
 
     @MockBean
     private DeliveryCancellationService deliveryCancellationService;
+
+    @MockBean
+    private AuthenticatedUserResolver authenticatedUserResolver;
 
     @Test
     void create_deveRetornar201() throws Exception {
