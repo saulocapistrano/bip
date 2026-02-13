@@ -13,6 +13,8 @@ import br.com.bip.domain.user.model.UserStatus;
 import br.com.bip.domain.user.repository.UserRepositoryPort;
 import br.com.bip.shared.exception.BusinessException;
 import br.com.bip.shared.exception.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ import java.util.UUID;
 
 @Service
 public class DeliveryAssignmentService {
+
+    private static final Logger log = LoggerFactory.getLogger(DeliveryAssignmentService.class);
 
     private final DeliveryRequestRepositoryPort deliveryRepository;
     private final UserRepositoryPort userRepositoryPort;
@@ -65,18 +69,27 @@ public class DeliveryAssignmentService {
 
         DeliveryRequest saved = deliveryRepository.save(delivery);
 
-        inRouteCachePort.save(saved);
+        try {
+            inRouteCachePort.save(saved);
+        } catch (RuntimeException ex) {
+            log.warn("Falha ao salvar entrega em rota no cache (Redis).", ex);
+        }
 
         DeliveryResponse response = DeliveryMapper.toResponse(saved);
 
-        // notifica o driver que assumiu a entrega
-        realtimeNotifier.notifyUpdateToDriver(driver.getId(), response);
+        try {
+            realtimeNotifier.notifyUpdateToDriver(driver.getId(), response);
+        } catch (RuntimeException ex) {
+            log.warn("Falha ao notificar atualização ao entregador via realtime.", ex);
+        }
 
-        // notfica que a entrega saiu da "vitrine" AVAILABLE (para front atualizar listas)
-        realtimeNotifier.notifyUpdateDelivery(response);
+        try {
+            realtimeNotifier.notifyUpdateDelivery(response);
+        } catch (RuntimeException ex) {
+            log.warn("Falha ao notificar atualização de entrega via realtime.", ex);
+        }
 
 
-        //  disparar evento Kafka / WebSocket notificando o cliente
         return DeliveryMapper.toResponse(saved);
     }
 }

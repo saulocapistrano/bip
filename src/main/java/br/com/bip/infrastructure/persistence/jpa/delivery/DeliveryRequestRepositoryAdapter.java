@@ -29,6 +29,11 @@ public class DeliveryRequestRepositoryAdapter implements DeliveryRequestReposito
     }
 
     @Override
+    public List<DeliveryRequest> findAll() {
+        return jpaRepository.findAll();
+    }
+
+    @Override
     public List<DeliveryRequest> findByClientId(UUID clientId) {
         return jpaRepository.findByClientId(clientId);
     }

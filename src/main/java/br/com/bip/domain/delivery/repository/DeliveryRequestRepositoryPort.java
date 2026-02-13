@@ -14,6 +14,8 @@ public interface DeliveryRequestRepositoryPort {
 
     Optional<DeliveryRequest> findById(UUID id);
 
+    List<DeliveryRequest> findAll();
+
     List<DeliveryRequest> findByClientId(UUID clientId);
 
     List<DeliveryRequest> findByStatus(DeliveryStatus status);
