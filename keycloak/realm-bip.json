@@ -6,6 +6,8 @@
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
 
+  "loginTheme": "bip",
+
   "roles": {
     "realm": [
       {
@@ -27,6 +29,8 @@
     {
       "username": "tortorelli",
       "enabled": true,
+      "firstName": "Tortorelli",
+      "lastName": "Admin",
       "email": "tortorelli@bip.com",
       "emailVerified": true,
       "credentials": [
@@ -41,6 +45,8 @@
     {
       "username": "clicia",
       "enabled": true,
+      "firstName": "Clicia",
+      "lastName": "Cliente",
       "email": "clicia@bip.com",
       "emailVerified": true,
       "credentials": [
@@ -55,6 +61,8 @@
     {
       "username": "elias",
       "enabled": true,
+      "firstName": "Elias",
+      "lastName": "Cliente",
       "email": "elias@bip.com",
       "emailVerified": true,
       "credentials": [
@@ -69,6 +77,8 @@
     {
       "username": "saulo",
       "enabled": true,
+      "firstName": "Saulo",
+      "lastName": "Entregador",
       "email": "saulo@bip.com",
       "emailVerified": true,
       "credentials": [
