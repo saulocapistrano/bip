@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 1.0-create-users-table
+      id: 1.0-create-users-tabledb
       author: bip
       changes:
         - createTable:
