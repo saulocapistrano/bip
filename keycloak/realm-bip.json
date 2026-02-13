@@ -27,7 +27,7 @@
     {
       "username": "tortorelli",
       "enabled": true,
-      "email": "tortorelli@bip.local",
+      "email": "tortorelli@bip.com",
       "emailVerified": true,
       "credentials": [
         {
@@ -41,7 +41,7 @@
     {
       "username": "clicia",
       "enabled": true,
-      "email": "clicia@bip.local",
+      "email": "clicia@bip.com",
       "emailVerified": true,
       "credentials": [
         {
@@ -55,7 +55,7 @@
     {
       "username": "elias",
       "enabled": true,
-      "email": "elias@bip.local",
+      "email": "elias@bip.com",
       "emailVerified": true,
       "credentials": [
         {
@@ -69,7 +69,7 @@
     {
       "username": "saulo",
       "enabled": true,
-      "email": "saulo@bip.local",
+      "email": "saulo@bip.com",
       "emailVerified": true,
       "credentials": [
         {
